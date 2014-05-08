@@ -34,8 +34,37 @@ Grid.prototype.randomAvailableCell = function () {
   var cells = this.availableCells();
 
   if (cells.length) {
-    return cells[Math.floor(Math.random() * cells.length)];
+      // return cells[Math.floor(Math.random() * cells.length)];
+      bestScore = 10000;
+      
+      // try a 2 and 4 in each cell and measure how annoying it is
+      // with metrics from eval
+      var candidates = [];
+      var cells = this.availableCells();
+      var scores = { 2: [], 4: [] };
+      for (var value in scores) {
+          for (var i in cells) {
+              scores[value].push(null);
+              var cell = cells[i];
+              var tile = new Tile(cell, parseInt(value, 10));
+              this.insertTile(tile);
+              scores[value][i] = -this.smoothness() + this.islands();
+              this.removeTile(cell);
+          }
+      }
   }
+    
+    var maxScore = Math.max(Math.max.apply(null, scores[2]), Math.max.apply(null, scores[4]));
+    for (var value in scores) { // 2 and 4
+      for (var i=0; i<scores[value].length; i++) {
+        if (scores[value][i] == maxScore) {
+          candidates.push( { position: cells[i], value: parseInt(value, 10) } );
+        }
+      }
+    }
+
+  return candidates[Math.floor(Math.random() * candidates.length)].position;
+    
 };
 
 Grid.prototype.availableCells = function () {
